@@ -328,7 +328,7 @@ export const BspParser = {
   },
   loadLightmap(r: Reader, offset: number, length: number): BspLumpLightmap {
     r.seek(offset)
-    return r.arrx(length, ReaderDataType.UByte)
+    return r.arrx(length, ReaderDataType.UByte) as Uint8Array;
   },
   loadTextureData(r: Reader) {
     const name = r.nstr(16)
@@ -347,14 +347,14 @@ export const BspParser = {
 
     // read largest mipmap data
     const pixelCount = width * height
-    const pixels = r.arrx(pixelCount, ReaderDataType.UByte)
+    const pixels = r.arrx(pixelCount, ReaderDataType.UByte) as Uint8Array;
 
     // skip other 3 mipmaps
     r.skip(21 * (pixelCount / 64))
 
     r.skip(2) // skip padding bytes
 
-    const palette = r.arrx(768, ReaderDataType.UByte)
+    const palette = r.arrx(768, ReaderDataType.UByte) as Uint8Array;
 
     const data = name[0] === '{' ? paletteWithLastTransToRGBA(pixels, palette) : paletteToRGBA(pixels, palette)
 

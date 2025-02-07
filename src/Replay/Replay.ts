@@ -602,7 +602,7 @@ export class Replay {
         currentChunk.timeLength = timeLength
         const lastFrameLength = offset - lastFrameOffset
         r.seek(lastFrameOffset)
-        currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte))
+        currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte) as Uint8Array);
         r.seek(offset)
 
         break
@@ -629,7 +629,7 @@ export class Replay {
           const lastFrameLength = offset - lastFrameOffset
           const tempOffset = r.tell()
           r.seek(lastFrameOffset)
-          currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte))
+          currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte) as Uint8Array);
           r.seek(tempOffset)
 
           // create new chunk
@@ -684,7 +684,7 @@ export class Replay {
         const lastFrameLength = offset - lastFrameOffset
         const tempOffset = r.tell()
         r.seek(lastFrameOffset)
-        currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte))
+        currentChunk.setData(r.arrx(lastFrameLength, ReaderDataType.UByte) as Uint8Array);
         r.seek(tempOffset)
 
         // create new chunk

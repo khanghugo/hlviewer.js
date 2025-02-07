@@ -71,7 +71,7 @@ export class Sprite {
     }
 
     const paletteSize = r.s()
-    const palette = r.arrx(paletteSize * 3, ReaderDataType.UByte)
+    const palette = r.arrx(paletteSize * 3, ReaderDataType.UByte) as Uint8Array;
 
     const frames: SpriteFrame[] = []
     for (let i = 0; i < header.frameCount; ++i) {
@@ -83,7 +83,7 @@ export class Sprite {
         data: new Uint8Array(header.width * header.height * 4)
       }
 
-      const pixels = r.arrx(header.width * header.height, ReaderDataType.UByte)
+      const pixels = r.arrx(header.width * header.height, ReaderDataType.UByte) as Uint8Array;
 
       if (header.alphaType === SpriteAlphaType.SPR_ALPHTEST) {
         frame.data = paletteWithLastTransToRGBA(pixels, palette)

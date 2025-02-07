@@ -11,14 +11,14 @@ function parseDecal(r: Reader): WadDecal {
 
   // read largest mipmap data
   const pixelCount = width * height
-  const pixels = r.arrx(pixelCount, ReaderDataType.UByte)
+  const pixels = r.arrx(pixelCount, ReaderDataType.UByte) as Uint8Array;
 
   // skip other 3 mipmaps
   r.skip(21 * (pixelCount / 64))
 
   r.skip(2) // skip padding bytes
 
-  const palette = r.arrx(768, ReaderDataType.UByte)
+  const palette = r.arrx(768, ReaderDataType.UByte) as Uint8Array;
 
   const data =
     name[0] === '{'
@@ -49,14 +49,14 @@ function parseTexture(r: Reader): WadTexture {
 
   // read largest mipmap data
   const pixelCount = width * height
-  const pixels = r.arrx(pixelCount, ReaderDataType.UByte)
+  const pixels = r.arrx(pixelCount, ReaderDataType.UByte) as Uint8Array;
 
   // skip other 3 mipmaps
   r.skip(21 * (pixelCount / 64))
 
   r.skip(2) // skip padding bytes
 
-  const palette = r.arrx(768, ReaderDataType.UByte)
+  const palette = r.arrx(768, ReaderDataType.UByte) as Uint8Array;
 
   const data =
     name[0] === '{'
@@ -94,11 +94,11 @@ function parseFont(r: Reader, metadata: WadEntryMetadata): WadFont {
   }
 
   const pixelCount = width * height
-  const pixels = r.arrx(pixelCount, ReaderDataType.UByte)
+  const pixels = r.arrx(pixelCount, ReaderDataType.UByte) as Uint8Array;
 
   r.skip(2)
 
-  const palette = r.arrx(256 * 3, ReaderDataType.UByte)
+  const palette = r.arrx(256 * 3, ReaderDataType.UByte) as Uint8Array;
 
   return {
     type: 'font',
@@ -115,7 +115,7 @@ function parseFont(r: Reader, metadata: WadEntryMetadata): WadFont {
 const parseUnknown = (r: Reader, metadata: WadEntryMetadata): WadUnknown => ({
   type: 'unknown',
   name: metadata.name,
-  data: r.arrx(metadata.length, ReaderDataType.UByte)
+  data: r.arrx(metadata.length, ReaderDataType.UByte) as Uint8Array
 })
 
 function parseEntry(r: Reader, metadata: WadEntryMetadata): WadEntry {

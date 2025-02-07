@@ -52,7 +52,7 @@ export class Tga {
 
     if (header.imageType === 0x02) {
       const byteCount = (pixelCount * header.image.depth) / 8
-      imageData = r.arrx(byteCount, ReaderDataType.UByte)
+      imageData = r.arrx(byteCount, ReaderDataType.UByte) as Uint8Array;
       if (header.image.depth === 24) {
         const temp = new Uint8Array(pixelCount * 4)
         for (let i = 0; i < h; ++i) {
