@@ -11,7 +11,7 @@ export function Timeline(props: { game: Game }) {
 
   onMount(() => {
     const offPostUpdate = props.game.events.on('postupdate', () => {
-      setProgress(props.game.player.currentTime / props.game.player.replay.length)
+      setProgress(props.game.player.currentTime / props.game.player.replay.length())
     })
     onCleanup(() => {
       offPostUpdate?.()
@@ -44,7 +44,7 @@ export function Timeline(props: { game: Game }) {
     const progressPos = Math.max(0, Math.min(1 - (rects.right - e.pageX) / (rects.right - rects.left), 1))
     if (ghostKnobActive()) {
       setGhostKnobPos(`${progressPos * 100}%`)
-      setGhostTime(props.game.player.replay.length * progressPos)
+      setGhostTime(props.game.player.replay.length() * progressPos)
     }
   }
 

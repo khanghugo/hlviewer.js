@@ -9,6 +9,7 @@ import { Replay } from './Replay/Replay'
 import { Sprite } from './Parsers/Sprite'
 import { xhr, type ProgressCallback } from './Xhr'
 import { BspParser } from './Parsers/BspParser'
+import { Ghost } from './Ghost/Ghost'
 
 enum LoadItemStatus {
   Loading = 1,
@@ -165,9 +166,51 @@ export class Loader {
       this.loadReplay(name)
     } else if (extension === '.bsp') {
       this.loadMap(name)
+    } else if (extension === '.txt') {
+      this.loadSimenGhost(name);
     } else {
       this.events.emit('error', 'Invalid file extension', name)
     }
+  }
+
+  // at the moment, the name of the ghost file will also include the map name
+  async loadSimenGhost(name: string) {
+    this.replay = new LoadItemReplay(name);
+    this.events.emit('loadstart', this.replay);
+
+    const progressCallback: ProgressCallback = (_1, progress) => {
+      if (this.replay) {
+        this.replay.progress = progress;
+      }
+
+      this.events.emit('progress', this.replay);
+    }
+
+    const replayPath = this.config.getReplaysPath()
+    const simenGhostFile = await xhr(`${replayPath}/${name}`, {
+      method: 'GET',
+      isBinary: false,
+      progressCallback
+    }).catch((err: any) => {
+      if (this.replay) {
+        this.replay.error()
+      }
+      this.events.emit('error', err, this.replay)
+    })
+
+    if (this.replay.isError()) {
+      return
+    }
+
+    const map_name = name.replace(".txt", ".bsp");
+    const ghost = new Ghost(name, simenGhostFile, "simen");
+
+    this.replay.done(ghost);
+
+    this.loadMap(map_name);
+
+    this.events.emit('load', this.replay)
+    this.checkStatus()
   }
 
   async loadReplay(name: string) {

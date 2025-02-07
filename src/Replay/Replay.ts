@@ -695,7 +695,7 @@ export class Replay {
     }
 
     return {
-      length: directories[1].time,
+      length: () => directories[1].time,
       maps,
       deltaDecoders,
       customMessages

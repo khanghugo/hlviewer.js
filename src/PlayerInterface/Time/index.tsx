@@ -6,7 +6,7 @@ import './style.css'
 export function Time(props: { player: ReplayPlayer }) {
   const gameState = useGameState()
   const current = () => formatTime(gameState.time)
-  const total = () => formatTime(props.player.replay.length)
+  const total = () => formatTime(props.player.replay.length())
 
   return (
     <div class="hlv-time">

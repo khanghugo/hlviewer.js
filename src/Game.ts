@@ -160,7 +160,17 @@ export class Game {
 
   load(name: string) {
     this.events.emit('loadstart')
+
+    // hack to change the ReplayPlayer to use our Ghost type
+    this.categoriseReplayType(name);
+
     this.loader.load(name)
+  }
+
+  private categoriseReplayType(name: string) {
+    if (name.endsWith(".txt")) {
+      this.player.replayType = "ghost";
+    }
   }
 
   changeMap(map: Bsp) {
@@ -192,7 +202,7 @@ export class Game {
     this.camera.rotation[2] = 0
   }
 
-  changeReplay(replay: Replay) {
+  changeReplay(replay: any) {
     this.events.emit('prereplaychange', this, replay)
 
     this.player.changeReplay(replay)

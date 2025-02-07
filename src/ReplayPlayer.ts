@@ -3,6 +3,7 @@ import { createNanoEvents, type Emitter as EventEmitter } from 'nanoevents'
 import type { Game } from './Game'
 import { Replay } from './Replay/Replay'
 import { ReplayState } from './Replay/ReplayState'
+import { GhostFrame } from './Ghost/GhostType'
 
 const updateGame = (game: Game, state: ReplayState) => {
   game.camera.position[0] = state.cameraPos[0]
@@ -13,10 +14,13 @@ const updateGame = (game: Game, state: ReplayState) => {
   game.camera.rotation[2] = glMatrix.toRadian(state.cameraRot[2])
 }
 
+export type ReplayTypeEnum = "replay" | "ghost" | null;
+
 export class ReplayPlayer {
   game: Game
   state: ReplayState
   replay: any
+  replayType: ReplayTypeEnum
   events: EventEmitter
 
   currentMap = 0
@@ -32,6 +36,7 @@ export class ReplayPlayer {
     this.game = game
     this.state = new ReplayState()
     this.replay = null
+    this.replayType = null
     this.events = createNanoEvents()
   }
 
@@ -45,14 +50,14 @@ export class ReplayPlayer {
     this.isPaused = false
     this.speed = 1
 
-    if (this.replay) {
-      const firstChunk = this.replay.maps[0].chunks[0]
+    if (this.replayType == "replay") {
+      const firstChunk = this.replay?.maps[0].chunks[0]
       firstChunk.reader.seek(0)
       this.state = firstChunk.state.clone()
     }
   }
 
-  changeReplay(replay: Replay) {
+  changeReplay(replay: any) {
     this.replay = replay
     this.reset()
   }
@@ -88,8 +93,35 @@ export class ReplayPlayer {
     this.speed = Math.max(this.speed / 2, 0.25)
   }
 
+  seekGhost(value: number) {
+    const t = Math.max(0, Math.min(this.replay.length(), value))
+
+    // some variables
+    this.currentTime = t;
+    this.currentMap = 0; // huh
+    // this.currentChunk = 0; // no need to set this
+
+    // hardcoded need to override frame time because some ghosts don't have it
+    let current_frame: GhostFrame = this.replay.getFrame(t, 0.01);
+
+    this.state.feedFrame({
+      type: 1, // needs this to play the frame
+      camera: {
+        position: current_frame.origin,
+        orientation: current_frame.viewangles,
+      }
+    });
+
+    this.events.emit('seek', t)
+    updateGame(this.game, this.state)
+  }
+
   seek(value: number) {
-    const t = Math.max(0, Math.min(this.replay.length, value))
+    if (this.replayType == "ghost") {
+      return this.seekGhost(value);
+    }
+
+    const t = Math.max(0, Math.min(this.replay.length(), value))
 
     const maps = this.replay.maps
     for (let i = 0; i < maps.length; ++i) {
@@ -130,12 +162,40 @@ export class ReplayPlayer {
   }
 
   seekByPercent(value: number) {
-    this.seek((Math.max(0, Math.min(value, 100)) / 100) * this.replay.length)
+    this.seek((Math.max(0, Math.min(value, 100)) / 100) * this.replay.length())
+  }
+
+  updateGhost(dt: number) {
+    const endTime = this.currentTime + dt * this.speed;
+
+    if (endTime >= this.replay.length()) {
+      this.stop();
+      return;
+    }
+
+    let current_frame: GhostFrame = this.replay.getFrame(endTime, 0.01);
+
+    this.state.feedFrame({
+      type: 1, // this is needed to play the frame
+      camera: {
+        position: [current_frame.origin[0], current_frame.origin[1], current_frame.origin[2] + (current_frame.viewheight ? current_frame.viewheight : 0)],
+        orientation: current_frame.viewangles,
+      }
+    });
+
+    updateGame(this.game, this.state);
+
+    this.currentTime = endTime;
   }
 
   update(dt: number) {
     if (!this.isPlaying || this.isPaused) {
       return
+    }
+
+    // use ghost if it is ghost
+    if (this.replayType == "ghost") {
+      return this.updateGhost(dt);
     }
 
     const deltaDecoders = this.replay.deltaDecoders
