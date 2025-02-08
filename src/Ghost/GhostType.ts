@@ -11,6 +11,13 @@ export interface GhostFrame {
     fov?: number,
     velocity?: Vec3,
     viewheight?: number,
+    sound?: GhostSound[],
+}
+
+export interface GhostSound {
+    name: string,
+    volume: number,
+    attentuation: number,
 }
 
 export type Vec3 = number[];

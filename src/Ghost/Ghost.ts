@@ -1,4 +1,4 @@
-import { GhostFrame, GhostInfo, GhostType } from "./GhostType";
+import { GhostFrame, GhostInfo, GhostSound, GhostType, Vec3 } from "./GhostType";
 import { SimenGhostParse } from "./Simen";
 
 export type ParseGhostResult = GhostInfo | "error";
@@ -18,9 +18,12 @@ type GhostFrameIdxResult = number[] | null;
 // IT IS SUPPOSED TO BE THE OTHER WAY AROUND!!
 export class Ghost {
     ghost: GhostInfo | null;
+    forced_frametime: number | null;
 
     constructor(name: string, data: string, ghost_type: GhostType) {
         const result = parseGhost(name, data, ghost_type);
+
+        this.forced_frametime = 0.01;
 
         if (result == "error") {
             this.ghost = null;
@@ -29,6 +32,8 @@ export class Ghost {
 
         this.ghost = result;
         this.calculateViewHeight();
+        this.calculateVelocity();
+        this.addStepSound();
     }
 
     private getFrameIdx(time: number, override_frametime?: number): GhostFrameIdxResult {
@@ -124,6 +129,8 @@ export class Ghost {
             origin: new_origin,
             viewangles: new_viewangles,
             fov: new_fov,
+            // inherit sound from either to make sure we have sound
+            sound: from_frame.sound || to_frame.sound || undefined,
         };
 
         return res;
@@ -141,12 +148,116 @@ export class Ghost {
             }
 
             this.ghost.frames[i].viewheight = 28;
-            
+
             const is_duck = this.ghost.frames[i].buttons & (1 << 2);
 
             if (is_duck) {
                 this.ghost.frames[i].viewheight = 12;
             }
+        }
+    }
+
+    private calculateVelocity() {
+        if (!this.ghost || this.forced_frametime === null) {
+            return;
+        }
+
+        let last_origin = [0, 0, 0];
+
+        for (let i = 0; i < this.ghost.frames.length; ++i) {
+            // there is already velocity, no need to calculate
+            if (this.ghost.frames[i].velocity === undefined) {
+                return;
+            }
+
+            if (i == 0) {
+                this.ghost.frames[i].velocity = [0, 0, 0];
+                last_origin = this.ghost.frames[i].origin;
+                continue;
+            }
+
+            const velocity = [
+                (this.ghost.frames[i].origin[0] - last_origin[0]) / this.forced_frametime,
+                (this.ghost.frames[i].origin[1] - last_origin[1]) / this.forced_frametime,
+                (this.ghost.frames[i].origin[2] - last_origin[2]) / this.forced_frametime,
+            ]
+
+            this.ghost.frames[i].velocity = velocity;
+            last_origin = this.ghost.frames[i].origin;
+        }
+    }
+
+    private addStepSound() {
+        if (!this.ghost) {
+            return;
+        }
+
+        const STEP_TIME_CONST = 0.3;
+
+        let step_time = STEP_TIME_CONST;
+        let last_vel = [0, 0, 0];
+
+        const getStepSoundFile = () => `player/pl_step${Math.abs(randRange(1, 4))}.wav`;
+
+        for (let i = 0; i < this.ghost.frames.length; ++i) {
+            // no velocity to calculate this
+            if (this.ghost.frames[i].velocity === undefined) {
+                return;
+            }
+
+            const velocity = this.ghost.frames[i].velocity as Vec3;
+
+            if (i == 0) {
+                last_vel = velocity;
+                // no need to add sound because it can be empty
+                continue;
+            }
+
+            const speed = Math.sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1]);
+
+            // if speed is less than 150 then increase time_step
+            // not sure why it is like this. I just copy from my previous work
+            if (speed < 150) {
+                step_time = STEP_TIME_CONST + 0.1;
+            }
+
+            // jump sound
+            const probably_jumping = (velocity[2] - last_vel[2]) > 210; // too OP?
+            if (probably_jumping || 
+                ((this.ghost.frames[i].buttons & (1 << 1)) != 0 && velocity[2] > last_vel[2] && speed > 150)) {
+                if (!this.ghost.frames[i].sound) {
+                    this.ghost.frames[i].sound = [];
+                }
+
+                const new_sound: GhostSound = {
+                    name: getStepSoundFile(),
+                    volume: 128,
+                    attentuation: 204
+                }
+
+                this.ghost.frames[i].sound?.push(new_sound);
+            }
+
+            // step sound
+            if (step_time <= 0. && velocity[2] == 0) {
+                // reset step time
+                step_time = STEP_TIME_CONST;
+
+                if (!this.ghost.frames[i].sound) {
+                    this.ghost.frames[i].sound = [];
+                }
+
+                const new_sound: GhostSound = {
+                    name: getStepSoundFile(),
+                    volume: 128,
+                    attentuation: 204
+                }
+
+                this.ghost.frames[i].sound?.push(new_sound);
+            }
+
+            last_vel = velocity;
+            step_time -= this.forced_frametime || 0.01;
         }
     }
 
@@ -201,7 +312,7 @@ export class Ghost {
     static lerp(a: number[], b: number[], t: number): number[];
 
     static lerp(a: number | number[], b: number | number[], t: number): number | number[] {
-        const l = (a: number, b: number, t: number) => a + t * ( b - a );
+        const l = (a: number, b: number, t: number) => a + t * (b - a);
 
         if (Array.isArray(a) && Array.isArray(b)) {
             return a.map((val, i) => l(val, b[i], t));
@@ -212,3 +323,10 @@ export class Ghost {
         }
     }
 }
+
+// start and end inclusive
+const randRange = (start: number, end: number) => {
+    let r = Math.random();
+
+    return Math.round(r * (end - start) + start);
+} 

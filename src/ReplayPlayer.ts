@@ -3,7 +3,7 @@ import { createNanoEvents, type Emitter as EventEmitter } from 'nanoevents'
 import type { Game } from './Game'
 import { Replay } from './Replay/Replay'
 import { ReplayState } from './Replay/ReplayState'
-import { GhostFrame } from './Ghost/GhostType'
+import { GhostFrame, GhostSound } from './Ghost/GhostType'
 
 const updateGame = (game: Game, state: ReplayState) => {
   game.camera.position[0] = state.cameraPos[0]
@@ -182,6 +182,17 @@ export class ReplayPlayer {
         orientation: current_frame.viewangles,
       }
     });
+
+    // sounds
+    if (current_frame.sound) {
+      const sounds: any[] = this.game.sounds;
+
+      for (let i = 0; i < current_frame.sound.length; ++i) {
+        const curr: GhostSound = current_frame.sound[i];
+        const curr_sound = sounds.find((s: any) => s.name === curr.name);
+        this.game.soundSystem.play(curr_sound, 7, curr.volume);
+      }
+    }
 
     updateGame(this.game, this.state);
 

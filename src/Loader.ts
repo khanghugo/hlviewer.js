@@ -207,7 +207,13 @@ export class Loader {
 
     this.replay.done(ghost);
 
+    // load current map
     this.loadMap(map_name);
+
+    // load footstep sound
+    for (let i = 1; i <= 4; ++i) {
+      this.loadSound(`player/pl_step${i}.wav`, i);
+    }
 
     this.events.emit('load', this.replay)
     this.checkStatus()
