@@ -464,10 +464,15 @@ export class WorldScene {
 
     gl.activeTexture(gl.TEXTURE0)
 
+    // basically every brush entity will have the "model" key after compiling the map
+    // the model will point to embedde model inside the bsp
+    // we don't want to render them, so here they gone
+    const filtered_entities = entities.filter(e => !e.classname.includes("trigger_"));
+
     const opaqueEntities = []
     const transparentEntities = []
-    for (let i = 1; i < entities.length; ++i) {
-      const e = entities[i]
+    for (let i = 1; i < filtered_entities.length; ++i) {
+      const e = filtered_entities[i]
       if (e.model) {
         if (!e.rendermode || e.rendermode === RenderMode.Normal || e.rendermode === RenderMode.Solid) {
           if (e.model[0] === '*') {
