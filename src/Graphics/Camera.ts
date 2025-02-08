@@ -15,6 +15,8 @@ export class Camera {
   position = vec3.create()
   rotation = vec3.create()
 
+  nightVisionEnabled = false;
+
   private constructor(aspect: number) {
     this.aspect = aspect
     this.updateProjectionMatrix()
@@ -47,5 +49,9 @@ export class Camera {
       -this.position[1],
       -this.position[2]
     ])
+  }
+
+  toggleNightVision() {
+    this.nightVisionEnabled = !this.nightVisionEnabled;
   }
 }

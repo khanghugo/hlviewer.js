@@ -457,6 +457,7 @@ export class WorldScene {
 
     shader.setDiffuse(gl, 0)
     shader.setLightmap(gl, 1)
+    shader.setNightVision(gl, !camera.nightVisionEnabled);
 
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, this.lightmap.handle)

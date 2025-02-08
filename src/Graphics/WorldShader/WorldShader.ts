@@ -7,6 +7,7 @@ precision highp float;
 
 uniform sampler2D diffuse;
 uniform sampler2D lightmap;
+uniform bool lightmapsEnabled;
 uniform float opacity;
 
 varying vec2 vTexCoord;
@@ -16,7 +17,11 @@ void main(void) {
   vec4 diffuseColor = texture2D(diffuse, vTexCoord);
   vec4 lightColor = texture2D(lightmap, vLightmapCoord);
 
-  gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a * opacity);
+  if (lightmapsEnabled) {
+    gl_FragColor = vec4(diffuseColor.rgb * lightColor.rgb, diffuseColor.a * opacity);
+  } else {
+    gl_FragColor = vec4(diffuseColor.rgb, diffuseColor.a * opacity);
+  }
 }`
 
 const vertexSrc = `#ifdef GL_ES
@@ -128,5 +133,10 @@ export class MainShader {
     gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, 7 * 4, 0)
     gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, 7 * 4, 3 * 4)
     gl.vertexAttribPointer(this.aTexCoord2, 2, gl.FLOAT, false, 7 * 4, 5 * 4)
+  }
+
+  setNightVision(gl: WebGLRenderingContext, v: boolean) {
+    const lightmapsEnabledLocation = gl.getUniformLocation(this.program, "lightmapsEnabled");
+    gl.uniform1i(lightmapsEnabledLocation, v ? 1 : 0);
   }
 }

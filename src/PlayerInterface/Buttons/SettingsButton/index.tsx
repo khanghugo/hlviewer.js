@@ -23,6 +23,10 @@ export function SettingsButton(props: { game: Game }) {
     props.game.changeMode(PlayerMode.REPLAY)
   }
 
+  const onToggleNightVisionClick = () => {
+    props.game.camera.toggleNightVision();
+  }
+
   return (
     <div classList={{ 'hlv-settings': true, open: isOpen() }}>
       <button type="button" class="hlv-button" onClick={() => setIsOpen(!isOpen())}>
@@ -69,6 +73,16 @@ export function SettingsButton(props: { game: Game }) {
           onClick={() => onFreeModeClick()}
         >
           Free Move
+        </button>
+        <button
+          type="button"
+          classList={{
+            'hlv-settings-menu-item': true,
+            selected: props.game.camera.nightVisionEnabled
+          }}
+          onClick={() => onToggleNightVisionClick()}
+        >
+          Night Vision
         </button>
       </div>
     </div>
