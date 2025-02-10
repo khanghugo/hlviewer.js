@@ -95,7 +95,7 @@ export class Game {
   isPaused = false
   lastTime = 0
   accumTime = 0
-  readonly timeStep: number = 1 / 60
+  readonly timeStep: number = 1 / 120
 
   title = ''
   mode: PlayerMode
