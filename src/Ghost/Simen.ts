@@ -52,8 +52,15 @@ const _SimenGhostParse = (data: string): SimenGhost => {
 
 export const SimenGhostParse = (name: string, data: string): GhostInfo => {
     const simen_ghost = _SimenGhostParse(data);
+
+    // convert time
+    // todo, make it work for time above 60 minutes by not being lazy and do some basic mathematics
+    const time = new Date(parseFloat(simen_ghost.header.time) * 1000).toISOString().slice(14, 22);
+
     const ghost_info: GhostInfo = {
-        name,
+        player: simen_ghost.header.name.trim(),
+        map: name.replace(".txt", ""),
+        time,
         frames: simen_ghost.frames.map(simen_ghost_frame => simen_ghost_frame.frame)
     };
 
@@ -91,7 +98,7 @@ const frame = (line: string): FrameResult => {
 const header_sequence = (lines: string[]): SimenGhostHeader => {
     console.assert(lines.length >= 6, "simen ghost header has less than 6 lines")
 
-    const time = lines[0].trim();
+    const time = lines[0].trim(); // in seconds
     const name = lines[1].trim();
     const steamid = lines[2].trim();
     const date = lines[3].trim();

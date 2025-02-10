@@ -1,5 +1,8 @@
 export interface GhostInfo {
-    name: string,
+    player?: string,
+    map?: string,
+    // time format should be in "mm:ss.ms"
+    time?: string,
     frames: GhostFrame[],
 }
 

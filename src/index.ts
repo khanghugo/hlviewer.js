@@ -24,6 +24,10 @@ class HLV {
   getTitle() {
     return this.game.getTitle()
   }
+
+  setAutoTitle(b: boolean) {
+    this.game.setAutoTitle(b);
+  }
 }
 
 export namespace HLViewer {

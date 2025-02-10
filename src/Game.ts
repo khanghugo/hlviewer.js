@@ -14,6 +14,7 @@ import { ReplayPlayer } from './ReplayPlayer'
 import { Renderer } from './Graphics/Renderer'
 import { SkyScene } from './Graphics/SkyScene'
 import { WorldScene } from './Graphics/WorldScene'
+import { Ghost } from './Ghost/Ghost'
 
 export enum PlayerMode {
   FREE = 0,
@@ -120,6 +121,8 @@ export class Game {
   worldScene: WorldScene
   skyScene: SkyScene
 
+  autoTitle: boolean
+
   constructor(params: { config: Config; canvas: HTMLCanvasElement; context: Context; renderer: Renderer; worldScene: WorldScene; skyScene: SkyScene }) {
     this.sounds = []
     this.soundSystem = new SoundSystem()
@@ -151,6 +154,8 @@ export class Game {
     this.events = createNanoEvents()
 
     this.mapName = ''
+
+    this.autoTitle = false;
   }
 
   getCanvas() {
@@ -206,6 +211,10 @@ export class Game {
 
     this.player.changeReplay(replay)
 
+    if (this.autoTitle) {
+      this.setGhostTitle();
+    }
+
     this.events.emit('postreplaychange', this, replay)
   }
 
@@ -221,6 +230,18 @@ export class Game {
 
   getTitle() {
     return this.title
+  }
+
+  setGhostTitle() {
+    if (this.player.replayType === "ghost") {
+    const ghost: Ghost = this.player.replay;
+      
+    this.setTitle(`${ghost.ghost?.player || "unknown"} on ${ghost.ghost?.map || "unknown"} done in ${ghost.ghost?.time || "unknonwn"}`);
+    }
+  }
+
+  setAutoTitle(b: boolean) {
+    this.autoTitle = b;
   }
 
   onLoadAll = (loader: Loader) => {
