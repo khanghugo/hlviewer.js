@@ -162,16 +162,16 @@ export class Ghost {
             return;
         }
 
-        let last_origin = [0, 0, 0];
+        let last_origin = [0, 0, -6969];
 
         for (let i = 0; i < this.ghost.frames.length; ++i) {
             // there is already velocity, no need to calculate
-            if (this.ghost.frames[i].velocity === undefined) {
+            if (this.ghost.frames[i].velocity !== undefined) {
                 return;
             }
 
             if (i == 0) {
-                this.ghost.frames[i].velocity = [0, 0, 0];
+                this.ghost.frames[i].velocity = last_origin;
                 last_origin = this.ghost.frames[i].origin;
                 continue;
             }
@@ -196,6 +196,7 @@ export class Ghost {
 
         let step_time = STEP_TIME_CONST;
         let last_vel = [0, 0, 0];
+        let prev_button = 0;
 
         const getStepSoundFile = () => `player/pl_step${Math.abs(randRange(1, 4))}.wav`;
 
@@ -221,24 +222,8 @@ export class Ghost {
                 step_time = STEP_TIME_CONST + 0.1;
             }
 
-            // jump sound
-            const probably_jumping = (velocity[2] - last_vel[2]) > 210; // too OP?
-            if (probably_jumping || 
-                ((this.ghost.frames[i].buttons & (1 << 1)) != 0 && velocity[2] > last_vel[2] && speed > 150)) {
-                if (!this.ghost.frames[i].sound) {
-                    this.ghost.frames[i].sound = [];
-                }
-
-                const new_sound: GhostSound = {
-                    name: getStepSoundFile(),
-                    volume: 128,
-                    attentuation: 204
-                }
-
-                this.ghost.frames[i].sound?.push(new_sound);
-            }
-
             // step sound
+            let has_step = false;
             if (step_time <= 0. && velocity[2] == 0) {
                 // reset step time
                 step_time = STEP_TIME_CONST;
@@ -254,10 +239,31 @@ export class Ghost {
                 }
 
                 this.ghost.frames[i].sound?.push(new_sound);
+
+                has_step = true;
+            }
+
+            // jump sound
+            const probably_jumping = (velocity[2] - last_vel[2]) > 220 && velocity[2] > 220 && (prev_button & (1 << 2)) === 0; // too OP?
+            // const probably_jumping = false;
+            if (!has_step && (probably_jumping ||
+                ((this.ghost.frames[i].buttons & (1 << 1)) != 0 && velocity[2] > last_vel[2] && velocity[2] > 220 && speed > 150))) {
+                if (!this.ghost.frames[i].sound) {
+                    this.ghost.frames[i].sound = [];
+                }
+
+                const new_sound: GhostSound = {
+                    name: getStepSoundFile(),
+                    volume: 128,
+                    attentuation: 204
+                }
+
+                this.ghost.frames[i].sound?.push(new_sound);
             }
 
             last_vel = velocity;
             step_time -= this.forced_frametime || 0.01;
+            prev_button = this.ghost.frames[i].buttons;
         }
     }
 
