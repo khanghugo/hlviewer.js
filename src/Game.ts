@@ -234,9 +234,11 @@ export class Game {
 
   setGhostTitle() {
     if (this.player.replayType === "ghost") {
-    const ghost: Ghost = this.player.replay;
-      
-    this.setTitle(`${ghost.ghost?.player || "unknown"} on ${ghost.ghost?.map || "unknown"} done in ${ghost.ghost?.time || "unknonwn"}`);
+      const ghost: Ghost = this.player.replay;
+      // const _english_title = `${ghost.ghost?.player || "unknown"} on ${ghost.ghost?.map || "unknown"} done in ${ghost.ghost?.time || "unknonwn"}`;
+      const chinese_title = `服务器记录: ${ghost.ghost?.map || "unknown"} ${ghost.ghost?.time || "unknonwn"} by ${ghost.ghost?.player || "unknown"}`;
+
+      this.setTitle(chinese_title);
     }
   }
 

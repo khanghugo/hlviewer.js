@@ -11,7 +11,7 @@ export interface SimenGhostHeader {
     steamid: string,
     date: string,
     location: string,
-    unknown: string,
+    gocheck_count: string,
 }
 
 export interface SimenGhost {
@@ -57,10 +57,14 @@ export const SimenGhostParse = (name: string, data: string): GhostInfo => {
     // todo, make it work for time above 60 minutes by not being lazy and do some basic mathematics
     const time = new Date(parseFloat(simen_ghost.header.time) * 1000).toISOString().slice(14, 22);
 
+    // it might be a gc run
+    const is_cp_run = parseInt(simen_ghost.header.gocheck_count) !== 0 ? true : false;
+    const time_title = `${time}${is_cp_run ? " [cp]" : ""}`;
+
     const ghost_info: GhostInfo = {
         player: simen_ghost.header.name.trim(),
         map: name.replace(".txt", ""),
-        time,
+        time: time_title,
         frames: simen_ghost.frames.map(simen_ghost_frame => simen_ghost_frame.frame)
     };
 
@@ -103,7 +107,7 @@ const header_sequence = (lines: string[]): SimenGhostHeader => {
     const steamid = lines[2].trim();
     const date = lines[3].trim();
     const location = lines[4].trim();
-    const unknown = lines[5].trim();
+    const gocheck_count = lines[5].trim();
 
     const header: SimenGhostHeader = {
         time,
@@ -111,7 +115,7 @@ const header_sequence = (lines: string[]): SimenGhostHeader => {
         steamid,
         date,
         location,
-        unknown,
+        gocheck_count: gocheck_count,
     };
 
     return header;
